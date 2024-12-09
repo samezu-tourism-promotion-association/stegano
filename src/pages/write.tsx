@@ -40,7 +40,7 @@ export default function Write() {
       </Dialog>
       <NextSeo title="年賀状をつくる - ステ賀乃" />
       <Header back="/" title="年賀状をつくる" />
-      <main className="max-w-4xl mx-auto px-4">
+      <main className="max-w-4xl mx-auto px-4 pb-16">
         <div className="flex items-center justify-center gap-2 mt-12">
           <button>
             <RiArrowLeftSLine size={52} className="fill-primary" />
