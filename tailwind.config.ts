@@ -12,6 +12,8 @@ export default {
     extend: {
       colors: {
         primary: "#E03F41",
+        secondary: "#1982BA",
+        tertiary: "#D89821",
       },
       fontFamily: {
         kaisei: ["var(--font-kaisei-tokumin)"],
