@@ -88,7 +88,7 @@ export default function Read() {
         //   }
         // );
         // const data = await res.json();
-        // setDecoded(data.decoded_text);
+        // setDecoded(data);
         setDecoded(`2月の【VIP限定感謝フェア】では、〇〇様だけの特別価格をご案内させていただきます。
 
 また、ご来店の際には、専属のコンシェルジュがご案内をさせていただき、ゆっくりとお買い物をお楽しみいただけます。`);

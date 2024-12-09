@@ -11,9 +11,64 @@ import {
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
+import { getCookie, setCookie, hasCookie } from "cookies-next/client";
 
 export default function Write() {
   const [loading, setLoading] = useState(false);
+  const [text, setText] = useState<string | undefined>(undefined);
+  const [prompt, setPrompt] = useState<string | undefined>(undefined);
+  const [encoded, setEncoded] = useState<string | undefined>(undefined);
+
+  const encodeText = () => {
+    if (text && prompt) {
+      setLoading(true);
+      try {
+        // request to https://opera7133--himitsu-fastapi-app-dev.modal.run/encode
+        // const res = await fetch(
+        //   "https://opera7133--himitsu-fastapi-app-dev.modal.run/encode",
+        //   {
+        //     method: "POST",
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify({
+        //       secret: text,
+        //       prompt: prompt,
+        //       language: "ja",
+        //       model_name: "leia-llm/Leia-Swallow-7b",
+        //       device: "cuda:0",
+        //     }),
+        //   }
+        // );
+        // const data = await res.json();
+        // setEncoded(`${prompt}\n${data}`);
+        setLoading(false);
+        // add to cookie
+        // if (hasCookie("created")) {
+        //   const created = JSON.parse(getCookie("created") as string);
+        //   // typeは年賀状の種類
+        //   setCookie(
+        //     "created",
+        //     JSON.stringify([
+        //       ...created,
+        //       { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}` },
+        //     ])
+        //   );
+        // } else {
+        //   setCookie(
+        //     "created",
+        //     JSON.stringify([
+        //       { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}` },
+        //     ])
+        //   );
+        // }
+      } catch (error) {
+        setLoading(false);
+        console.error(error);
+      }
+    }
+  };
+
   return (
     <Layout>
       <Dialog
@@ -57,18 +112,40 @@ export default function Write() {
             <RiArrowRightSLine size={52} className="fill-primary" />
           </button>
         </div>
-        <h2 className="pt-12 text-2xl font-bold">埋め込みたいコトバ</h2>
+        <label className="block pt-12 text-xl font-bold" htmlFor="prompt">
+          文章の出だし
+        </label>
+        <input
+          id="prompt"
+          name="prompt"
+          type="text"
+          className="w-full p-3 mt-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+          placeholder="ここに出だしをかいてください"
+          onChange={(e) => {
+            setPrompt(e.target.value);
+          }}
+          value={prompt}
+        />
+        <label className="block pt-6 text-xl font-bold" htmlFor="secret">
+          埋め込みたいコトバ
+        </label>
         <textarea
+          id="secret"
+          name="secret"
           className="w-full p-3 mt-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
           placeholder="ここにコトバをかいてください"
           rows={5}
+          onChange={(e) => {
+            setText(e.target.value);
+          }}
+          value={text}
         ></textarea>
         <Button
           className="mt-8 w-full"
           bgColor="bg-primary"
           text="埋め込む"
           onClick={() => {
-            setLoading(true);
+            encodeText();
           }}
         />
       </main>
