@@ -6,7 +6,7 @@ import Image from "next/image";
 import {
   RiArrowLeftSLine,
   RiArrowRightSLine,
-  RiCloseFill,
+  //RiCloseFill,
   RiLoader4Fill,
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
