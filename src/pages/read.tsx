@@ -10,26 +10,25 @@ import {
   RiMenuSearchLine,
   RiLoader4Fill,
   RiFileTextLine,
+  RiFileImageLine,
+  RiFilePdf2Line,
+  RiHome4Line,
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import templates from "@/lib/templates";
 import { getCookie, setCookie, hasCookie } from "cookies-next/client";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
+import Letter from "@/components/Letter";
+import { saveLetterImage, saveLetterPdf } from "@/lib/save";
+import { useRouter } from "next/router";
 
 export default function Read() {
+  const router = useRouter();
   const camera = useRef<CameraType>(null);
   const [image, setImage] = useState<string | ImageData | undefined>(undefined);
-  const [text, setText] = useState<string | undefined>('謹賀新年\n、あけました2013年です。昨年はお世話になりました本年もまたお願いしますというご挨拶とともに2013年もよろしくおねがいいたします。さてさて2013年のスタートは2003年1月15日以来10年ぶり2度目の');
+  const [text, setText] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [decoded, setDecoded] = useState<string | undefined>(undefined);
-  const [templateImagePath, setTemplateImagePath] = useState<string | undefined>(undefined);
-  const models = [
-    "sbintuitions/sarashina2-7b",
-    "llm-jp/llm-jp-3-1.8b",
-    "leia-llm/Leia-Swallow-7b",
-    "rinna/youri-7b",
-    "augmxnt/shisa-gamma-7b-v1",
-  ];
+  const [templateId, setTemplateId] = useState<string | undefined>(undefined);
 
   const analyzeImage = async () => {
     // request to cloud vision api
@@ -63,178 +62,223 @@ export default function Read() {
         const data = await res.json();
         if (data.responses && data.responses[0].fullTextAnnotation) {
           setText(data.responses[0].fullTextAnnotation.text);
+          // 取得したテキストから、テンプレートIDを求める
+          // もしテンプレートIDが含まれていないなら、ダイアログ表示(読み取りに失敗しました)
+          const templateId = findTemplateIdFromText(
+            data.responses[0].fullTextAnnotation.text
+          );
+          if (templateId.length === 0) {
+            return;
+          }
+          setTemplateId(templateId);
         }
-
-        // 取得したテキストから、テンプレートIDを求める
-        // もしテンプレートIDが含まれていないなら、ダイアログ表示(読み取りに失敗しました)
-        setTemplateImagePath(getTemplatePath(findTemplateIdFromText(text!)));
       }
     } catch (error) {
-    console.error(error);
-  }
-};
-
-const decodeText = async () => {
-  if (text) {
-    setLoading(true);
-    try {
-      // request to https://opera7133--himitsu-fastapi-app-dev.modal.run/decode
-      const res = await fetch(
-        `https://opera7133--himitsu-fastapi-app-dev.modal.run/decode?cover_text=${text.split('\n').slice(1)}&prompt=${text.split('\n')[0]}&min_prob=0.01&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
-        );
-      const data = await res.json();
-      setDecoded(data);
-      setLoading(false);
-      if (hasCookie("read")) {
-        const read = JSON.parse(getCookie("read") as string);
-        // typeは年賀状の種類
-        setCookie(
-          "read",
-          JSON.stringify([
-            ...read,
-            { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}`, id: uuidv4() },
-          ])
-        );
-      } else {
-        setCookie(
-          "read",
-          JSON.stringify([
-            { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}`, id: uuidv4() },
-          ])
-        );
-      }
-    } catch (error) {
-      setLoading(false);
       console.error(error);
     }
-  }
-};
+  };
 
-// 画像から読み取った文字列から、テンプレートIDを探す
-// テンプレートIDのフォーマット -> #(英字1文字)(数字1文字)
-const findTemplateIdFromText = (text: string): string[] => {
-  const keyChar: string = "#";  // keyとなる文字
-  const lengthOfId: number = 2; // IDの文字数
-
-  const candidates: string[] = []; // 候補となる文字列
-
-  // keyCharからlengthOfId文の文字を文字列として取得
-  for (const char of text) {
-    if (candidates[candidates.length - 1].length < lengthOfId) {
-      candidates[candidates.length - 1] += char;
+  const decodeText = async () => {
+    if (text) {
+      setLoading(true);
+      try {
+        // request to https://opera7133--himitsu-fastapi-app-dev.modal.run/decode
+        const prompt = text.split("\n")[0];
+        const res = await fetch(
+          `https://opera7133--himitsu-fastapi-app-dev.modal.run/decode?cover_text=${text
+            .split("\n")
+            .slice(1)
+            .join()}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+        );
+        const data = await res.json();
+        setDecoded(data);
+        setLoading(false);
+        if (hasCookie("read")) {
+          const read = JSON.parse(getCookie("read") as string);
+          // typeは年賀状の種類
+          setCookie(
+            "read",
+            JSON.stringify([
+              ...read,
+              {
+                type: "1",
+                createdAt: new Date(),
+                text: text,
+                prompt: prompt,
+                encoded: `${prompt}\n${data}`,
+                id: uuidv4(),
+              },
+            ])
+          );
+        } else {
+          setCookie(
+            "read",
+            JSON.stringify([
+              {
+                type: "1",
+                createdAt: new Date(),
+                text: text,
+                prompt: prompt,
+                encoded: `${prompt}\n${data}`,
+                id: uuidv4(),
+              },
+            ])
+          );
+        }
+      } catch (error) {
+        setLoading(false);
+        console.error(error);
+      }
     }
-    if (char == keyChar) {
-      candidates.push("");
+  };
+
+  // 画像から読み取った文字列から、テンプレートIDを探す
+  // テンプレートIDのフォーマット -> #(英字1文字)(数字1文字)
+  const findTemplateIdFromText = (text: string): string => {
+    const keyChar: string = "#"; // keyとなる文字
+    const lengthOfId: number = 2; // IDの文字数
+
+    const candidates: string[] = []; // 候補となる文字列
+
+    // keyCharからlengthOfId文の文字を文字列として取得
+    for (const char of text) {
+      if (candidates[candidates.length - 1].length < lengthOfId) {
+        candidates[candidates.length - 1] += char;
+      }
+      if (char == keyChar) {
+        candidates.push("");
+      }
     }
-  }
 
-  return candidates;
-};
+    return candidates[0];
+  };
 
-// テンプレートIDの候補から、テンプレート画像のPathを取得
-const getTemplatePath = (candidates: string[]): string => {
-  // id候補がtemplatesに含まれているかを確かめる
-  // もし複数含まれている場合なら、最初に"含まれている"と判断したPathを返す
-  for (const candidate of candidates) {
-    if (candidate in templates) {
-      return templates[candidate as string] as string;
-    }
-  }
-
-  return "Not Found";
-};
-
-return (
-  <Layout>
-    <NextSeo title="よむ - ステ賀乃" />
-    <Header back="/" title="よむ" />
-    <Dialog
-      open={loading}
-      onClose={() => { }}
-      transition
-      className="fixed inset-0 flex w-screen items-center justify-center bg-black/50 p-4 transition duration-300 ease-out data-[closed]:opacity-0"
-    >
-      <DialogPanel className="rounded-lg max-w-lg bg-white p-4">
-        <div className="py-8 px-8 flex flex-col items-center gap-6">
-          <RiLoader4Fill size={72} className="animate-spin" />
-          <DialogTitle className="font-bold text-xl font-kaisei">
-            コトバを戻しています
-          </DialogTitle>
-        </div>
-      </DialogPanel>
-    </Dialog>
-    <main className="max-w-4xl mx-auto pb-16">
-      {image ? (
-        <>
-          <div className="relative max-w-lg mx-auto aspect-square">
-            {typeof image === "string" && (
-              <img
-                src={image}
-                alt="Captured"
-                className="object-cover w-full h-full"
-              />
-            )}
+  return (
+    <Layout>
+      <NextSeo title="よむ - ステ賀乃" />
+      <Header back="/" title="よむ" />
+      <Dialog
+        open={loading}
+        onClose={() => {}}
+        transition
+        className="fixed inset-0 flex w-screen items-center justify-center bg-black/50 p-4 transition duration-300 ease-out data-[closed]:opacity-0"
+      >
+        <DialogPanel className="rounded-lg max-w-lg bg-white p-4">
+          <div className="py-8 px-8 flex flex-col items-center gap-6">
+            <RiLoader4Fill size={72} className="animate-spin" />
+            <DialogTitle className="font-bold text-xl font-kaisei">
+              コトバを戻しています
+            </DialogTitle>
           </div>
-          {text && (
-            <div className="px-4 my-4">
-              <p className="font-bold mt-4 text-lg">
-                読み取り結果はあっていますか？
-              </p>
-              <textarea
-                className="w-full p-3 my-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
-                readOnly
-                rows={5}
-              >
-                {text}
-              </textarea>
+        </DialogPanel>
+      </Dialog>
+      <main className="max-w-4xl mx-auto pb-16">
+        {decoded ? (
+          <>
+            <div className="w-full flex items-center justify-center my-8">
+              <Letter template={templateId!} text={decoded} />
             </div>
-          )}
-          <div className="px-4 flex flex-col gap-4 my-4">
-            {text ? (
-              <Button
-                onClick={() => {decodeText() }}
-                text="コトバに戻す"
-                icon={RiFileTextLine}
-                className="w-full px-4"
-                bgColor="bg-secondary"
-              />
-            ) : (
-              <Button
-                onClick={() => analyzeImage()}
-                text="解析"
-                icon={RiMenuSearchLine}
-                className="w-full px-4"
-                bgColor="bg-secondary"
-              />
+            <Button
+              className="mt-8 w-full"
+              bgColor="bg-primary"
+              text="写真に記録"
+              icon={RiFileImageLine}
+              onClick={() => {
+                saveLetterImage();
+              }}
+            />
+            <Button
+              className="mt-4 w-full"
+              bgColor="bg-secondary"
+              text="PDFとして保存"
+              icon={RiFilePdf2Line}
+              onClick={() => {
+                saveLetterPdf();
+              }}
+            />
+            <Button
+              className="mt-4 w-full"
+              bgColor="bg-tertiary"
+              text="ホームへ戻る"
+              icon={RiHome4Line}
+              onClick={() => {
+                router.push("/");
+              }}
+            />
+          </>
+        ) : image ? (
+          <>
+            <div className="relative max-w-lg mx-auto aspect-square">
+              {typeof image === "string" && (
+                <img
+                  src={image}
+                  alt="Captured"
+                  className="object-cover w-full h-full"
+                />
+              )}
+            </div>
+            {text && (
+              <div className="px-4 my-4">
+                <p className="font-bold mt-4 text-lg">
+                  読み取り結果はあっていますか？
+                </p>
+                <textarea
+                  className="w-full p-3 my-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                  readOnly
+                  rows={5}
+                >
+                  {text}
+                </textarea>
+              </div>
             )}
-            <Button
-              onClick={() => setImage(undefined)}
-              text="やり直し"
-              icon={RiRestartLine}
-              className="w-full px-4"
-            />
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="relative max-w-lg mx-auto aspect-square">
-            <Camera
-              ref={camera}
-              errorMessages={{}}
-              facingMode="environment"
-            />
-          </div>
-          <div className="px-4">
-            <Button
-              onClick={() => setImage(camera.current?.takePhoto())}
-              text="撮影"
-              icon={RiCamera3Line}
-              className="w-full px-4 my-8"
-            />
-          </div>
-        </>
-      )}
-    </main>
-  </Layout>
-);
+            <div className="px-4 flex flex-col gap-4 my-4">
+              {text ? (
+                <Button
+                  onClick={() => {
+                    decodeText();
+                  }}
+                  text="コトバに戻す"
+                  icon={RiFileTextLine}
+                  className="w-full px-4"
+                  bgColor="bg-secondary"
+                />
+              ) : (
+                <Button
+                  onClick={() => analyzeImage()}
+                  text="解析"
+                  icon={RiMenuSearchLine}
+                  className="w-full px-4"
+                  bgColor="bg-secondary"
+                />
+              )}
+              <Button
+                onClick={() => setImage(undefined)}
+                text="やり直し"
+                icon={RiRestartLine}
+                className="w-full px-4"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="relative max-w-lg mx-auto aspect-square">
+              <Camera
+                ref={camera}
+                errorMessages={{}}
+                facingMode="environment"
+              />
+            </div>
+            <div className="px-4">
+              <Button
+                onClick={() => setImage(camera.current?.takePhoto())}
+                text="撮影"
+                icon={RiCamera3Line}
+                className="w-full px-4 my-8"
+              />
+            </div>
+          </>
+        )}
+      </main>
+    </Layout>
+  );
 }

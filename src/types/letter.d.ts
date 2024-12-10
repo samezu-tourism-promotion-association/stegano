@@ -1,8 +1,9 @@
 type Letter = {
-    type: string;
-    createdAt: string;
-    text: string;
-    prompt: string;
-    encoded: string;
-    id: string;
-  };
+  type: string;
+  createdAt: string;
+  text: string;
+  prompt: string;
+  encoded: string;
+  id: string;
+  status?: string;
+};

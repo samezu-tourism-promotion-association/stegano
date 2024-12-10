@@ -1,33 +1,26 @@
-import Link from "next/link";
-import { RiStickyNoteAddLine } from "react-icons/ri";
+import templates from "@/lib/templates";
+import Image from "next/image";
+import nl2br from "react-nl2br";
 
 export default function Letter({
-  blank = false,
-  image,
-  title,
+  template,
+  text,
 }: {
-  blank?: boolean;
-  image?: string;
-  title?: string;
+  template: string;
+  text: string | undefined;
 }) {
-  return blank ? (
-    <Link
-      href="/write"
-      className="shrink-0 w-full block aspect-[5/6] max-w-60 bg-primary/60 rounded-lg"
-    >
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <RiStickyNoteAddLine color="white" size={60} />
-        <p className="text-white text-xl">年賀状をつくる</p>
-      </div>
-    </Link>
-  ) : (
-    <Link className="shrink-0 block" href="/letters/1">
-      <img
-        src={image}
-        alt={title}
-        className="aspect-[5/6] w-full max-w-60 object-cover rounded-lg"
+  return (
+    <div className="relative max-w-80 w-full aspect-[1/1.49]" id="letter">
+      <Image
+        src={templates[template]}
+        layout="fill"
+        objectFit="cover"
+        alt="Letter Preview"
       />
-      <p className="mt-2 text-lg text-center text-black">{title}</p>
-    </Link>
+      <div className="absolute top-0 left-0 w-full h-full flex flex-col gap-1 p-5 bg-black bg-opacity-50 text-white writing-vertical">
+        <p className="text-lg font-bold">{template}</p>
+        <p className="text-lg">{nl2br(text)}</p>
+      </div>
+    </div>
   );
 }
