@@ -83,15 +83,23 @@ export default function Read() {
       setLoading(true);
       try {
         // request to https://opera7133--himitsu-fastapi-app-dev.modal.run/decode
-        const prompt = text.split("\n")[0];
+        const prompt = text.split("\n")[1];
         const res = await fetch(
           `https://opera7133--himitsu-fastapi-app-dev.modal.run/decode?cover_text=${text
             .split("\n")
-            .slice(1)
+            .slice(2)
             .join()}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
         );
         const data = await res.json();
-        setDecoded(data);
+        const normalText = await fetch("/api/decode", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ binary: data }),
+        });
+        const normalTextJson = await normalText.json();
+        setDecoded(normalTextJson.text);
         setLoading(false);
         if (hasCookie("read")) {
           const read = JSON.parse(getCookie("read") as string);
@@ -101,11 +109,11 @@ export default function Read() {
             JSON.stringify([
               ...read,
               {
-                type: "1",
+                type: text.split("\n")[0],
                 createdAt: new Date(),
-                text: text,
+                text: normalTextJson.text,
                 prompt: prompt,
-                encoded: `${prompt}\n${data}`,
+                encoded: `${text.split("\n").slice(2).join()}`,
                 id: uuidv4(),
               },
             ])
@@ -115,11 +123,11 @@ export default function Read() {
             "read",
             JSON.stringify([
               {
-                type: "1",
+                type: text.split("\n")[0],
                 createdAt: new Date(),
-                text: text,
+                text: normalTextJson.text,
                 prompt: prompt,
-                encoded: `${prompt}\n${data}`,
+                encoded: `${text.split("\n").slice(2).join()}`,
                 id: uuidv4(),
               },
             ])
