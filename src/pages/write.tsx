@@ -21,30 +21,31 @@ export default function Write() {
   const [prompt, setPrompt] = useState<string | undefined>(undefined);
   const [encoded, setEncoded] = useState<string | undefined>(undefined);
 
-  const encodeText = () => {
+  const encodeText = async () => {
     if (text && prompt) {
       setLoading(true);
       try {
+        //textをshiftjisでbit化する
+        const binaryText = await fetch(
+          "api/conv",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body:JSON.stringify({text:text})
+          }
+        )
+        const binaryTextJson = await binaryText.json();
+        console.log(binaryTextJson.binary);
         // request to https://opera7133--himitsu-fastapi-app-dev.modal.run/encode
-        // const res = await fetch(
-        //   "https://opera7133--himitsu-fastapi-app-dev.modal.run/encode",
-        //   {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({
-        //       secret: text,
-        //       prompt: prompt,
-        //       language: "ja",
-        //       model_name: "leia-llm/Leia-Swallow-7b",
-        //       device: "cuda:0",
-        //     }),
-        //   }
-        // );
-        const data = "埋め込みました。";
-        setEncoded(`${prompt}\n${data}`);
+        const res = await fetch(
+        `https://opera7133--himitsu-fastapi-app-dev.modal.run/encode?secret=${binaryTextJson.binary}&prompt=${prompt}&min_prob=0.01&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+        );
+        const data = await res.json();
+        setEncoded(data);
         setLoading(false);
+        console.log(data)
         // add to cookie
         if (hasCookie("created")) {
           const created = JSON.parse(getCookie("created") as string);

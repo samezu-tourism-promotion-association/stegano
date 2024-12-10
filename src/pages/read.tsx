@@ -13,11 +13,13 @@ import {
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import templates from "@/lib/templates";
+import { getCookie, setCookie, hasCookie } from "cookies-next/client";
+import { v4 as uuidv4 } from 'uuid';
 
 export default function Read() {
   const camera = useRef<CameraType>(null);
   const [image, setImage] = useState<string | ImageData | undefined>(undefined);
-  const [text, setText] = useState<string | undefined>(undefined);
+  const [text, setText] = useState<string | undefined>('謹賀新年\n、あけました2013年です。昨年はお世話になりました本年もまたお願いしますというご挨拶とともに2013年もよろしくおねがいいたします。さてさて2013年のスタートは2003年1月15日以来10年ぶり2度目の');
   const [loading, setLoading] = useState(false);
   const [decoded, setDecoded] = useState<string | undefined>(undefined);
   const [templateImagePath, setTemplateImagePath] = useState<string | undefined>(undefined);
@@ -77,28 +79,30 @@ export default function Read() {
       setLoading(true);
       try {
         // request to https://opera7133--himitsu-fastapi-app-dev.modal.run/decode
-        // const res = await fetch(
-        //   "https://opera7133--himitsu-fastapi-app-dev.modal.run/decode",
-        //   {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({
-        //       cover_text: text.split("\n").slice(1).join(),
-        //       prompt: text.split("\n")[0],
-        //       language: "ja",
-        //       model_name: "leia-llm/Leia-Swallow-7b",
-        //       device: "cuda:0",
-        //     }),
-        //   }
-        // );
-        // const data = await res.json();
-        // setDecoded(data);
-        setDecoded(`2月の【VIP限定感謝フェア】では、〇〇様だけの特別価格をご案内させていただきます。
-
-また、ご来店の際には、専属のコンシェルジュがご案内をさせていただき、ゆっくりとお買い物をお楽しみいただけます。`);
+        const res = await fetch(
+          `https://opera7133--himitsu-fastapi-app-dev.modal.run/decode?cover_text=${text.split('\n').slice(1)}&prompt=${text.split('\n')[0]}&min_prob=0.01&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+        );
+        const data = await res.json();
+        setDecoded(data);
         setLoading(false);
+        if (hasCookie("read")) {
+          const read = JSON.parse(getCookie("read") as string);
+          // typeは年賀状の種類
+          setCookie(
+            "read",
+            JSON.stringify([
+              ...read,
+              { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}`, id: uuidv4() },
+            ])
+          );
+        } else {
+          setCookie(
+            "read",
+            JSON.stringify([
+              { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}`, id: uuidv4() },
+            ])
+          );
+        }
       } catch (error) {
         setLoading(false);
         console.error(error);
@@ -188,7 +192,7 @@ export default function Read() {
             <div className="px-4 flex flex-col gap-4 my-4">
               {text ? (
                 <Button
-                  onClick={() => { }}
+                  onClick={() => { decodeText() }}
                   text="コトバに戻す"
                   icon={RiFileTextLine}
                   className="w-full px-4"
