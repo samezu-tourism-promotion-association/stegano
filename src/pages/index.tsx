@@ -7,11 +7,11 @@ import { getCookie } from "cookies-next/server";
 import { GetServerSideProps } from 'next';
 
 interface HomeProps {
-  created:string;
-  read:string;
+  created: string;
+  read: string;
 }
 
-export default function Home({ created,read }: HomeProps) {
+export default function Home({ created, read }: HomeProps) {
   const createdLetters = JSON.parse(created);
   const readLetters = JSON.parse(read)
   return (
@@ -26,7 +26,7 @@ export default function Home({ created,read }: HomeProps) {
               createdLetters.map((letter: Letter) => (
                 <Letter
                   key={letter.id}
-                  type={letter.type as unknown as number }
+                  type={letter.type as unknown as number}
                   text={letter.encoded}
                   id={letter.id}
                 />
@@ -43,7 +43,7 @@ export default function Home({ created,read }: HomeProps) {
               readLetters.map((letter: Letter) => (
                 <Letter
                   key={letter.id}
-                  type={letter.type as unknown as number }
+                  type={letter.type as unknown as number}
                   text={letter.encoded}
                   id={letter.id}
                 />
