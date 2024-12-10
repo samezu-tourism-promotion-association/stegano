@@ -61,10 +61,11 @@ export default function Read() {
         const data = await res.json();
         if (data.responses && data.responses[0].fullTextAnnotation) {
           setText(data.responses[0].fullTextAnnotation.text);
+
+          // 取得したテキストから、テンプレートIDを求める
+          // もしテンプレートIDが含まれていないなら、ダイアログ表示(読み取りに失敗しました)
+          //setTemplateImagePath(getTemplatePath(findTemplateIdFromText(text!)));
         }
-        // 取得したテキストから、テンプレートIDを求める
-        // もしテンプレートIDが含まれていないなら、ダイアログ表示(読み取りに失敗しました)
-        setTemplateImagePath(getTemplatePath(findTemplateIdFromText(text!)));
       }
     } catch (error) {
       console.error(error);
