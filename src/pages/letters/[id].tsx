@@ -5,22 +5,17 @@ import Button from '@/components/Button'
 import { GetServerSideProps } from 'next'
 import { getCookie } from "cookies-next/server";
 
-export default function LetterPage({ token }: { token: string }) {
-    const { id } = useParams()
+export default function LetterPage({ letter }: { letter: Letter }) {
     const {targetRef, pdfOpenHandler} = usePdf()
-    const letters:Letter[] = token ? JSON.parse(token) : []
-    const letter = letters.find((letter) => letter.id === id)
     return (
       <>
         <div ref={targetRef}>
             {
                 letter ? (
-                    <Letter
-                        key={letter.id}
-                        type={letter.type as unknown as number }
-                        text={letter.text}
-                        id={letter.id}
-                    />
+                    <div>
+                      {letter.encoded}
+                      {letter.text}
+                    </div>
                 ) : (
                     <p>年賀状はありません。</p>
                 )
@@ -31,12 +26,22 @@ export default function LetterPage({ token }: { token: string }) {
     )
 }
 
+
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const cookie = await getCookie("created", { req: context.req, res: context.res });
-  console.log(cookie);
+  const { id } = context.params!;
+
+  const createdCookie = await getCookie("created", { req: context.req, res: context.res });
+  const createdLetters: Letter[] = createdCookie ? JSON.parse(createdCookie as string) : [];
+  let letter = createdLetters.find((letter) => letter.id === id);
+  if (!letter) {
+    const readCookie = await getCookie("read", { req: context.req, res: context.res });
+    const readLetters: Letter[] = readCookie ? JSON.parse(readCookie as string) : [];
+    letter = readLetters.find((letter) => letter.id === id);
+  }
+
   return {
     props: {
-      token: cookie ?? null,
+      letter: letter || null,
     },
   };
-}
+};

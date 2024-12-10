@@ -7,12 +7,13 @@ import { getCookie } from "cookies-next/server";
 import { GetServerSideProps } from 'next';
 
 interface HomeProps {
-  token: string | null;
+  created:string;
+  read:string;
 }
 
-export default function Home({ token }: HomeProps) {
-  const letters:Letter[] = token ? JSON.parse(token) : [];
-
+export default function Home({ created,read }: HomeProps) {
+  const createdLetters = JSON.parse(created);
+  const readLetters = JSON.parse(read)
   return (
     <Layout>
       <NextSeo title="ステ賀乃" />
@@ -21,12 +22,12 @@ export default function Home({ token }: HomeProps) {
         <div className="pt-12">
           <h2 className="text-2xl font-bold">つくった年賀状</h2>
           <div className="mt-8 flex items-start gap-4 overflow-x-scroll">
-            {letters.length ? (
-              letters.map((letter: Letter) => (
+            {createdLetters.length ? (
+              createdLetters.map((letter: Letter) => (
                 <Letter
                   key={letter.id}
                   type={letter.type as unknown as number }
-                  text={letter.text}
+                  text={letter.encoded}
                   id={letter.id}
                 />
               ))
@@ -38,6 +39,18 @@ export default function Home({ token }: HomeProps) {
         <div className="pt-12">
           <h2 className="text-2xl font-bold">読んだ年賀状</h2>
           <div className="mt-8 flex items-start gap-4 overflow-x-scroll">
+            {readLetters.length ? (
+              readLetters.map((letter: Letter) => (
+                <Letter
+                  key={letter.id}
+                  type={letter.type as unknown as number }
+                  text={letter.encoded}
+                  id={letter.id}
+                />
+              ))
+            ) : (
+              <p>年賀状はありません。</p>
+            )}
           </div>
         </div>
       </main>
@@ -47,11 +60,13 @@ export default function Home({ token }: HomeProps) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const cookie = await getCookie("created", { req: context.req, res: context.res });
-  console.log(cookie);
+  const created = await getCookie("created", { req: context.req, res: context.res });
+  const read = await getCookie("read", { req: context.req, res: context.res });
+
   return {
     props: {
-      token: cookie ?? null,
+      created,
+      read
     },
   };
 }
