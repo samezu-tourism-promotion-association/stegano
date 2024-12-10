@@ -220,12 +220,12 @@ export default function Read() {
             {text && (
               <div className="px-4 my-4">
                 <p className="font-bold mt-4 text-lg">
-                  読み取り結果はあっていますか？
+                  読み取り結果はあっていますか？（あっていない場合は修正）
                 </p>
                 <textarea
                   className="w-full p-3 my-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
-                  readOnly
                   rows={5}
+                  onChange={(e) => setText(e.target.value)}
                 >
                   {text}
                 </textarea>
