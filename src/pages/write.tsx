@@ -6,12 +6,14 @@ import Image from "next/image";
 import {
   RiArrowLeftSLine,
   RiArrowRightSLine,
+  RiCloseFill,
   //RiCloseFill,
   RiLoader4Fill,
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
 import { getCookie, setCookie, hasCookie } from "cookies-next/client";
+import { v4 as uuidv4 } from 'uuid';
 
 export default function Write() {
   const [loading, setLoading] = useState(false);
@@ -40,28 +42,28 @@ export default function Write() {
         //     }),
         //   }
         // );
-        // const data = await res.json();
-        // setEncoded(`${prompt}\n${data}`);
+        const data = "埋め込みました。";
+        setEncoded(`${prompt}\n${data}`);
         setLoading(false);
         // add to cookie
-        // if (hasCookie("created")) {
-        //   const created = JSON.parse(getCookie("created") as string);
-        //   // typeは年賀状の種類
-        //   setCookie(
-        //     "created",
-        //     JSON.stringify([
-        //       ...created,
-        //       { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}` },
-        //     ])
-        //   );
-        // } else {
-        //   setCookie(
-        //     "created",
-        //     JSON.stringify([
-        //       { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}` },
-        //     ])
-        //   );
-        // }
+        if (hasCookie("created")) {
+          const created = JSON.parse(getCookie("created") as string);
+          // typeは年賀状の種類
+          setCookie(
+            "created",
+            JSON.stringify([
+              ...created,
+              { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}`, id: uuidv4() },
+            ])
+          );
+        } else {
+          setCookie(
+            "created",
+            JSON.stringify([
+              { type: "1", createdAt: new Date(), text: text, prompt: prompt, encoded: `${prompt}\n${data}`, id: uuidv4() },
+            ])
+          );
+        }
       } catch (error) {
         setLoading(false);
         console.error(error);
@@ -78,13 +80,13 @@ export default function Write() {
         className="fixed inset-0 flex w-screen items-center justify-center bg-black/50 p-4 transition duration-300 ease-out data-[closed]:opacity-0"
       >
         <DialogPanel className="rounded-lg max-w-lg bg-white p-4">
-          {/* <button
+          <button
             onClick={() => {
               setLoading(false);
             }}
           >
             <RiCloseFill size={40} />
-          </button> */}
+          </button>
           <div className="py-8 px-8 flex flex-col items-center gap-6">
             <RiLoader4Fill size={72} className="animate-spin" />
             <DialogTitle className="font-bold text-xl font-kaisei">
