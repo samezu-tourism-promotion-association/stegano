@@ -106,7 +106,7 @@ export default function Read() {
       <Header back="/" title="よむ" />
       <Dialog
         open={loading}
-        onClose={() => {}}
+        onClose={() => { }}
         transition
         className="fixed inset-0 flex w-screen items-center justify-center bg-black/50 p-4 transition duration-300 ease-out data-[closed]:opacity-0"
       >
@@ -148,7 +148,7 @@ export default function Read() {
             <div className="px-4 flex flex-col gap-4 my-4">
               {text ? (
                 <Button
-                  onClick={() => {}}
+                  onClick={() => { }}
                   text="コトバに戻す"
                   icon={RiFileTextLine}
                   className="w-full px-4"
