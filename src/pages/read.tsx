@@ -27,7 +27,7 @@ export default function Read() {
   const router = useRouter();
   const camera = useRef<CameraType>(null);
   const [image, setImage] = useState<string | ImageData | undefined>(undefined);
-  const [text, setText] = useState<string | undefined>("aaa");
+  const [text, setText] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [decoded, setDecoded] = useState<string | undefined>(undefined);
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
