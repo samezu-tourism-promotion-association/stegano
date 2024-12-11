@@ -21,15 +21,18 @@ import Letter from "@/components/Letter";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
+import { models } from "@/lib/models";
 
 export default function Read() {
   const router = useRouter();
   const camera = useRef<CameraType>(null);
   const [image, setImage] = useState<string | ImageData | undefined>(undefined);
-  const [text, setText] = useState<string | undefined>(undefined);
+  const [text, setText] = useState<string | undefined>("aaa");
   const [loading, setLoading] = useState(false);
   const [decoded, setDecoded] = useState<string | undefined>(undefined);
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
+  const [model, setModel] = useState<string>("leia-llm/Leia-Swallow-7b");
+  const [minProb, setMinProb] = useState<number>(0.005);
 
   const analyzeImage = async () => {
     // request to cloud vision api
@@ -87,13 +90,13 @@ export default function Read() {
   };
 
   const decodeText = async () => {
-    if (text) {
+    if (text && minProb && model) {
       setLoading(true);
       try {
         const prompt = text.split("\n")[1];
         const mainText = text.split("\n").slice(2).join("").replace(/\s+/g, "");
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/decode?cover_text=${mainText}&prompt=${prompt}&min_prob=0.005&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/decode?cover_text=${mainText}&prompt=${prompt}&min_prob=${minProb}&model_name=${model}`
         );
         const data = await res.json();
         const normalText = await fetch("/api/decode", {
@@ -235,18 +238,67 @@ export default function Read() {
               )}
             </div>
             {text && (
-              <div className="px-4 my-4">
-                <p className="font-bold mt-4 text-lg">
-                  読み取り結果はあっていますか？（あっていない場合は修正）
-                </p>
-                <textarea
-                  className="w-full p-3 my-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
-                  rows={5}
-                  onChange={(e) => setText(e.target.value)}
-                >
-                  {text}
-                </textarea>
-              </div>
+              <>
+                <div className="px-4 my-4">
+                  <p className="font-bold mt-4 text-lg">
+                    読み取り結果はあっていますか？（あっていない場合は修正）
+                  </p>
+                  <textarea
+                    className="w-full p-3 mt-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                    rows={5}
+                    onChange={(e) => setText(e.target.value)}
+                  >
+                    {text}
+                  </textarea>
+                </div>
+                <details className="px-4 mb-8">
+                  <summary className="text-xl font-bold cursor-pointer">
+                    高度な設定
+                  </summary>
+                  <div>
+                    <label
+                      className="block py-4 text-lg font-bold"
+                      htmlFor="model"
+                    >
+                      言語モデル
+                    </label>
+                    <select
+                      id="model"
+                      name="model"
+                      className="w-full p-3 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                      onChange={(e) => {
+                        setModel(e.target.value);
+                      }}
+                      value={model}
+                    >
+                      {models.map((model) => (
+                        <option key={model} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      className="block py-4 text-lg font-bold"
+                      htmlFor="minProb"
+                    >
+                      min_prob
+                    </label>
+                    <input
+                      id="minProb"
+                      name="minProb"
+                      type="number"
+                      step="0.001"
+                      className="w-full p-3 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                      onChange={(e) => {
+                        setMinProb(parseFloat(e.target.value));
+                      }}
+                      value={minProb}
+                    />
+                  </div>
+                </details>
+              </>
             )}
             <div className="px-4 flex flex-col gap-4 my-4">
               {text ? (

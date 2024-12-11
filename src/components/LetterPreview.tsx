@@ -28,13 +28,13 @@ export default function LetterPreview({
         />
         <div
           className={twMerge(
-            "absolute left-0 w-full h-full flex flex-col gap-1 p-5 writing-vertical",
+            "absolute left-0 w-full h-full flex flex-col p-5 writing-vertical",
             ["#T3", "#S3"].includes(template) ? "text-black" : "text-white",
             isHalfTemplate() ? "top-1/2 h-1/2" : "top-0 h-full"
           )}
         >
-          <p className="text-sm font-bold">{template}</p>
-          <p className="text-sm">{nl2br(text)}</p>
+          <p className="text-[0.5rem] font-bold">{template}</p>
+          <p className="text-[0.725rem]">{nl2br(text)}</p>
         </div>
       </div>
     </Link>

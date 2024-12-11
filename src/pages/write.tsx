@@ -18,6 +18,7 @@ import templates from "@/lib/templates";
 import Letter from "@/components/Letter";
 import { useRouter } from "next/router";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
+import { models } from "@/lib/models";
 
 export default function Write() {
   const [loading, setLoading] = useState(false);
@@ -25,11 +26,13 @@ export default function Write() {
   const [prompt, setPrompt] = useState<string | undefined>(undefined);
   const [encoded, setEncoded] = useState<string | undefined>(undefined);
   const [template, setTemplate] = useState<number>(0);
+  const [model, setModel] = useState<string>("leia-llm/Leia-Swallow-7b");
+  const [minProb, setMinProb] = useState<number>(0.005);
   const templateKeys = templates ? Object.keys(templates) : [];
   const router = useRouter();
 
   const encodeText = async () => {
-    if (text && prompt) {
+    if (text && prompt && minProb && model) {
       setLoading(true);
       try {
         const binaryText = await fetch("/api/encode", {
@@ -41,7 +44,7 @@ export default function Write() {
         });
         const binaryTextJson = await binaryText.json();
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/encode?secret=${binaryTextJson.binary}&prompt=${prompt}&min_prob=0.005&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/encode?secret=${binaryTextJson.binary}&prompt=${prompt}&min_prob=${minProb}&model_name=${model}`
         );
         const data = await res.json();
         setEncoded(data);
@@ -192,6 +195,53 @@ export default function Write() {
               }}
               value={text}
             ></textarea>
+            <details className="mt-4">
+              <summary className="text-xl font-bold cursor-pointer">
+                高度な設定
+              </summary>
+              <p className="mt-2">
+                以下の欄を変更した場合、送り先に変更した値の情報を送る必要があります。
+              </p>
+              <div>
+                <label className="block py-4 text-lg font-bold" htmlFor="model">
+                  言語モデル
+                </label>
+                <select
+                  id="model"
+                  name="model"
+                  className="w-full p-3 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                  onChange={(e) => {
+                    setModel(e.target.value);
+                  }}
+                  value={model}
+                >
+                  {models.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  className="block py-4 text-lg font-bold"
+                  htmlFor="minProb"
+                >
+                  min_prob
+                </label>
+                <input
+                  id="minProb"
+                  name="minProb"
+                  type="number"
+                  step="0.001"
+                  className="w-full p-3 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                  onChange={(e) => {
+                    setMinProb(parseFloat(e.target.value));
+                  }}
+                  value={minProb}
+                />
+              </div>
+            </details>
             <Button
               className="mt-8 w-full"
               bgColor="bg-primary"
