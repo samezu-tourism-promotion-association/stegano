@@ -6,6 +6,7 @@ const kaiseiTokumin = Kaisei_Tokumin({
   weight: "400",
   style: "normal",
   variable: "--font-kaisei-tokumin",
+  preload: false,
 });
 
 export default function App({ Component, pageProps }: AppProps) {
