@@ -323,7 +323,10 @@ export default function Read() {
                 />
               )}
               <Button
-                onClick={() => setImage(undefined)}
+                onClick={() => {
+                  setImage(undefined);
+                  setText(undefined);
+                }}
                 text="やり直し"
                 icon={RiRestartLine}
                 className="w-full px-4"
