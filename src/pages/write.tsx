@@ -12,15 +12,19 @@ import {
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
-import { getCookie, setCookie, hasCookie } from "cookies-next/client";
 import { v4 as uuidv4 } from "uuid";
 import templates from "@/lib/templates";
 import Letter from "@/components/Letter";
 import { useRouter } from "next/router";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
 import { models } from "@/lib/models";
+import { useLocalStorage } from "usehooks-ts";
 
 export default function Write() {
+  const [createdLetters, setCreatedLetters] = useLocalStorage<Letter[]>(
+    "created",
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState<string | undefined>(undefined);
   const [prompt, setPrompt] = useState<string | undefined>(undefined);
@@ -49,37 +53,18 @@ export default function Write() {
         const data = await res.json();
         setEncoded(data);
         setLoading(false);
-        if (hasCookie("created")) {
-          const created = JSON.parse(getCookie("created") as string);
-          setCookie(
-            "created",
-            JSON.stringify([
-              {
-                type: templateKeys[template],
-                createdAt: new Date(),
-                text: text,
-                prompt: prompt,
-                encoded: `${prompt}\n${data}`,
-                id: uuidv4(),
-              },
-              ...created,
-            ])
-          );
-        } else {
-          setCookie(
-            "created",
-            JSON.stringify([
-              {
-                type: templateKeys[template],
-                createdAt: new Date(),
-                text: text,
-                prompt: prompt,
-                encoded: `${prompt}\n${data}`,
-                id: uuidv4(),
-              },
-            ])
-          );
-        }
+        setCreatedLetters([
+          {
+            type: templateKeys[template],
+            createdAt: new Date().toString(),
+            text: text,
+            prompt: prompt,
+            status: "created",
+            encoded: `${prompt}\n${data}`,
+            id: uuidv4(),
+          },
+          ...createdLetters,
+        ]);
       } catch (error) {
         setLoading(false);
         console.error(error);
@@ -106,7 +91,7 @@ export default function Write() {
           </div>
         </DialogPanel>
       </Dialog>
-      <NextSeo title="年賀状をつくる - ステ賀乃" />
+      <NextSeo title="年賀状をつくる - ステ賀乃" noindex nofollow />
       <Header back="/" title="年賀状をつくる" />
       <main className="max-w-4xl mx-auto px-4 pb-16">
         {encoded ? (

@@ -1,6 +1,4 @@
 import Button from "@/components/Button";
-import { GetServerSideProps } from "next";
-import { getCookie } from "cookies-next/server";
 import Layout from "@/layouts/Layout";
 import Header from "@/components/Header";
 import { NextSeo } from "next-seo";
@@ -8,13 +6,22 @@ import Letter from "@/components/Letter";
 import { RiFileImageLine, RiHome4Line, RiFilePdf2Line } from "react-icons/ri";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
 import { useRouter } from "next/router";
+import { useLocalStorage } from "usehooks-ts";
 
-export default function LetterPage({ letter }: { letter: Letter }) {
+export default function LetterPage() {
   const router = useRouter();
+  const [readLetters] = useLocalStorage<Letter[]>("read", []);
+  const [createdLetters] = useLocalStorage<Letter[]>("created", []);
+  const letters = readLetters.concat(createdLetters);
+  const { id } = router.query;
+  const letter = letters.find((letter) => letter.id === id);
+  if (!letter) {
+    return null;
+  }
 
   return (
     <Layout>
-      <NextSeo title="よむ - ステ賀乃" />
+      <NextSeo title="よむ - ステ賀乃" noindex nofollow />
       <Header back="/" title="よむ" />
       <main className="max-w-4xl mx-auto px-4 pb-16 text-primary">
         <div className="w-full flex items-center justify-center my-8">
@@ -54,34 +61,3 @@ export default function LetterPage({ letter }: { letter: Letter }) {
     </Layout>
   );
 }
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { id } = context.params!;
-  let status = "created";
-
-  const createdCookie = await getCookie("created", {
-    req: context.req,
-    res: context.res,
-  });
-  const createdLetters: Letter[] = createdCookie
-    ? JSON.parse(createdCookie as string)
-    : [];
-  let letter = createdLetters.find((letter) => letter.id === id);
-  if (!letter) {
-    const readCookie = await getCookie("read", {
-      req: context.req,
-      res: context.res,
-    });
-    const readLetters: Letter[] = readCookie
-      ? JSON.parse(readCookie as string)
-      : [];
-    letter = readLetters.find((letter) => letter.id === id);
-    status = "read";
-  }
-
-  return {
-    props: {
-      letter: letter ? { ...letter, status } : null,
-    },
-  };
-};

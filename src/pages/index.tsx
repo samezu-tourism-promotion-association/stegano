@@ -3,24 +3,22 @@ import { NextSeo } from "next-seo";
 import Header from "@/components/Header";
 import LetterPreview from "@/components/LetterPreview";
 import Footer from "@/components/Footer";
-import { getCookie } from "cookies-next/server";
-import { GetServerSideProps } from "next";
 import Link from "next/link";
 import { RiAddLine } from "react-icons/ri";
 import { useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
 
-interface HomeProps {
-  created: string;
-  read: string;
-}
-
-export default function Home({ created, read }: HomeProps) {
-  const createdLetters = JSON.parse(created);
-  const readLetters = JSON.parse(read);
+export default function Home() {
+  const [createdLetters] = useLocalStorage("created", [], {
+    initializeWithValue: false,
+  });
+  const [readLetters] = useLocalStorage("read", [], {
+    initializeWithValue: false,
+  });
   const [searchText, setSearchText] = useState<string>("");
   return (
     <Layout>
-      <NextSeo title="ステ賀乃" />
+      <NextSeo title="ステ賀乃" noindex nofollow />
       <Header home setSearchText={setSearchText} searchText={searchText} />
       <main className="max-w-4xl mx-auto px-4 pb-16 text-primary">
         <div className="pt-12">
@@ -86,18 +84,3 @@ export default function Home({ created, read }: HomeProps) {
     </Layout>
   );
 }
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const created =
-    (await getCookie("created", { req: context.req, res: context.res })) ||
-    "[]";
-  const read =
-    (await getCookie("read", { req: context.req, res: context.res })) || "[]";
-
-  return {
-    props: {
-      created,
-      read,
-    },
-  };
-};

@@ -15,7 +15,6 @@ import {
   RiHome4Line,
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { getCookie, setCookie, hasCookie } from "cookies-next/client";
 import { v4 as uuidv4 } from "uuid";
 import Letter from "@/components/Letter";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
@@ -23,10 +22,12 @@ import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import { models } from "@/lib/models";
 import templates from "@/lib/templates";
+import { useLocalStorage } from "usehooks-ts";
 
 export default function Read() {
   const router = useRouter();
   const camera = useRef<CameraType>(null);
+  const [readLetters, setReadLetters] = useLocalStorage<Letter[]>("read", []);
   const [image, setImage] = useState<string | ImageData | undefined>(undefined);
   const [text, setText] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
@@ -115,38 +116,18 @@ export default function Read() {
         setDecoded(normalTextJson.text);
         setTemplateId(text.split("\n")[0]);
         setLoading(false);
-        if (hasCookie("read")) {
-          const read = JSON.parse(getCookie("read") as string);
-          // typeは年賀状の種類
-          setCookie(
-            "read",
-            JSON.stringify([
-              ...read,
-              {
-                type: text.split("\n")[0],
-                createdAt: new Date(),
-                text: normalTextJson.text,
-                prompt: prompt,
-                encoded: mainText,
-                id: uuidv4(),
-              },
-            ])
-          );
-        } else {
-          setCookie(
-            "read",
-            JSON.stringify([
-              {
-                type: text.split("\n")[0],
-                createdAt: new Date(),
-                text: normalTextJson.text,
-                prompt: prompt,
-                encoded: mainText,
-                id: uuidv4(),
-              },
-            ])
-          );
-        }
+        setReadLetters([
+          {
+            type: text.split("\n")[0],
+            createdAt: new Date().toString(),
+            text: normalTextJson.text,
+            prompt: prompt,
+            status: "read",
+            encoded: mainText,
+            id: uuidv4(),
+          },
+          ...readLetters,
+        ]);
       } catch (error) {
         setLoading(false);
         console.error(error);
@@ -157,7 +138,7 @@ export default function Read() {
 
   return (
     <Layout>
-      <NextSeo title="よむ - ステ賀乃" />
+      <NextSeo title="よむ - ステ賀乃" noindex nofollow />
       <Header back="/" title="よむ" />
       <Dialog
         open={loading}
