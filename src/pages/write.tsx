@@ -234,6 +234,8 @@ export default function Write() {
                   name="minProb"
                   type="number"
                   step="0.001"
+                  min="0.0001"
+                  max="0.1"
                   className="w-full p-3 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
                   onChange={(e) => {
                     setMinProb(parseFloat(e.target.value));
