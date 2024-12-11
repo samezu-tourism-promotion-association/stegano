@@ -22,6 +22,7 @@ import { saveLetterImage, saveLetterPdf } from "@/lib/save";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import { models } from "@/lib/models";
+import templates from "@/lib/templates";
 
 export default function Read() {
   const router = useRouter();
@@ -67,15 +68,9 @@ export default function Read() {
         const data = await res.json();
         if (data.responses && data.responses[0].fullTextAnnotation) {
           setText(data.responses[0].fullTextAnnotation.text);
-          // 取得したテキストから、テンプレートIDを求める
-          // もしテンプレートIDが含まれていないなら、ダイアログ表示(読み取りに失敗しました)
-          const templateId = findTemplateIdFromText(
-            data.responses[0].fullTextAnnotation.text
+          setTemplateId(
+            data.responses[0].fullTextAnnotation.text.split("\n")[0]
           );
-          if (templateId.length === 0) {
-            return;
-          }
-          setTemplateId(templateId);
           toast.success("読み取りに成功しました", {
             id: loadingToast,
           });
@@ -93,6 +88,16 @@ export default function Read() {
     if (text && minProb && model) {
       setLoading(true);
       try {
+        if (text.split("\n").length < 3) {
+          setLoading(false);
+          toast.error("不正なフォーマットです");
+          return;
+        }
+        if (!templates[text.split("\n")[0]]) {
+          setLoading(false);
+          toast.error("テンプレートが見つかりませんでした");
+          return;
+        }
         const prompt = text.split("\n")[1];
         const mainText = text.split("\n").slice(2).join("").replace(/\s+/g, "");
         const res = await fetch(
@@ -108,7 +113,7 @@ export default function Read() {
         });
         const normalTextJson = await normalText.json();
         setDecoded(normalTextJson.text);
-        setTemplateId(findTemplateIdFromText(text));
+        setTemplateId(text.split("\n")[0]);
         setLoading(false);
         if (hasCookie("read")) {
           const read = JSON.parse(getCookie("read") as string);
@@ -148,27 +153,6 @@ export default function Read() {
         toast.error("デコードに失敗しました。読み取った文字列は正しいですか？");
       }
     }
-  };
-
-  // 画像から読み取った文字列から、テンプレートIDを探す
-  // テンプレートIDのフォーマット -> #(英字1文字)(数字1文字)
-  const findTemplateIdFromText = (text: string): string => {
-    const keyChar: string = "#"; // keyとなる文字
-    const lengthOfId: number = 2; // IDの文字数
-
-    const candidates: string[] = []; // 候補となる文字列
-
-    // keyCharからlengthOfId文の文字を文字列として取得
-    for (const char of text) {
-      if (candidates[candidates.length - 1].length < lengthOfId) {
-        candidates[candidates.length - 1] += char;
-      }
-      if (char == keyChar) {
-        candidates.push("");
-      }
-    }
-
-    return candidates[0];
   };
 
   return (
