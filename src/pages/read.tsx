@@ -20,6 +20,7 @@ import { v4 as uuidv4 } from "uuid";
 import Letter from "@/components/Letter";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
 import { useRouter } from "next/router";
+import toast from "react-hot-toast";
 
 export default function Read() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function Read() {
 
   const analyzeImage = async () => {
     // request to cloud vision api
+    const loadingToast = toast.loading("解析中...");
     try {
       if (typeof image === "string") {
         const base64String = image.replace(/^data:image\/[a-z]+;base64,/, "");
@@ -71,9 +73,15 @@ export default function Read() {
             return;
           }
           setTemplateId(templateId);
+          toast.success("読み取りに成功しました", {
+            id: loadingToast,
+          });
         }
       }
     } catch (error) {
+      toast.error("読み取りに失敗しました", {
+        id: loadingToast,
+      });
       console.error(error);
     }
   };
@@ -133,6 +141,7 @@ export default function Read() {
       } catch (error) {
         setLoading(false);
         console.error(error);
+        toast.error("デコードに失敗しました。読み取った文字列は正しいですか？");
       }
     }
   };
