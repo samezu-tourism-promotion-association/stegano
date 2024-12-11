@@ -105,6 +105,7 @@ export default function Read() {
         });
         const normalTextJson = await normalText.json();
         setDecoded(normalTextJson.text);
+        setTemplateId(findTemplateIdFromText(text));
         setLoading(false);
         if (hasCookie("read")) {
           const read = JSON.parse(getCookie("read") as string);
