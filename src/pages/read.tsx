@@ -85,7 +85,7 @@ export default function Read() {
         const prompt = text.split("\n")[1];
         const mainText = text.split("\n").slice(2).join("").replace(/\s+/g, "");
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/decode?cover_text=${mainText}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/decode?cover_text=${mainText}&prompt=${prompt}&min_prob=0.015&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
         );
         const data = await res.json();
         const normalText = await fetch("/api/decode", {
