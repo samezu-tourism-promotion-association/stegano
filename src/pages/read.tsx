@@ -82,10 +82,9 @@ export default function Read() {
     if (text) {
       setLoading(true);
       try {
-        // request to https://opera7133--himitsu-fastapi-app-dev.modal.run/decode
         const prompt = text.split("\n")[1];
         const res = await fetch(
-          `https://opera7133--himitsu-fastapi-app-dev.modal.run/decode?cover_text=${text
+          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/decode?cover_text=${text
             .split("\n")
             .slice(2)
             .join()}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`

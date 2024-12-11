@@ -41,7 +41,7 @@ export default function Write() {
         });
         const binaryTextJson = await binaryText.json();
         const res = await fetch(
-          `https://opera7133--himitsu-fastapi-app-dev.modal.run/encode?secret=${binaryTextJson.binary}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/encode?secret=${binaryTextJson.binary}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
         );
         const data = await res.json();
         setEncoded(data);
