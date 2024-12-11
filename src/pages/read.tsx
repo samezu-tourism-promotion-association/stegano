@@ -25,7 +25,7 @@ export default function Read() {
   const router = useRouter();
   const camera = useRef<CameraType>(null);
   const [image, setImage] = useState<string | ImageData | undefined>(undefined);
-  const [text, setText] = useState<string | undefined>(undefined);
+  const [text, setText] = useState<string | undefined>("#");
   const [loading, setLoading] = useState(false);
   const [decoded, setDecoded] = useState<string | undefined>(undefined);
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
@@ -83,11 +83,9 @@ export default function Read() {
       setLoading(true);
       try {
         const prompt = text.split("\n")[1];
+        const mainText = text.split("\n").slice(2).join("").replace(/\s+/g, "");
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/decode?cover_text=${text
-            .split("\n")
-            .slice(2)
-            .join()}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
+          `${process.env.NEXT_PUBLIC_MODAL_API_URL}/decode?cover_text=${mainText}&prompt=${prompt}&min_prob=0.0075&device=cuda:0&language=ja&model_name=leia-llm/Leia-Swallow-7b`
         );
         const data = await res.json();
         const normalText = await fetch("/api/decode", {
@@ -112,7 +110,7 @@ export default function Read() {
                 createdAt: new Date(),
                 text: normalTextJson.text,
                 prompt: prompt,
-                encoded: `${text.split("\n").slice(2).join()}`,
+                encoded: mainText,
                 id: uuidv4(),
               },
             ])
@@ -126,7 +124,7 @@ export default function Read() {
                 createdAt: new Date(),
                 text: normalTextJson.text,
                 prompt: prompt,
-                encoded: `${text.split("\n").slice(2).join()}`,
+                encoded: mainText,
                 id: uuidv4(),
               },
             ])

@@ -11,7 +11,7 @@ export default function Letter({
   text: string | undefined;
 }) {
   const isHalfTemplate = () => {
-    const halfTemplates = ["#S3", "#T3"];
+    const halfTemplates = [""];
     return halfTemplates.includes(template);
   };
   return (
