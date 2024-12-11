@@ -173,6 +173,8 @@ export default function Read() {
             <RiLoader4Fill size={72} className="animate-spin" />
             <DialogTitle className="font-bold text-xl font-kaisei">
               コトバを戻しています
+              <br />
+              最大20秒程度かかります
             </DialogTitle>
           </div>
         </DialogPanel>

@@ -97,6 +97,8 @@ export default function Write() {
             <RiLoader4Fill size={72} className="animate-spin" />
             <DialogTitle className="font-bold text-xl font-kaisei">
               コトバを埋め込んでいます
+              <br />
+              最大20秒程度かかります
             </DialogTitle>
           </div>
         </DialogPanel>
