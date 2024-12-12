@@ -19,6 +19,8 @@ import { useRouter } from "next/router";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
 import { models } from "@/lib/models";
 import { useLocalStorage } from "usehooks-ts";
+import stringWidth from "string-width";
+import toast from "react-hot-toast";
 
 export default function Write() {
   const [createdLetters, setCreatedLetters] = useLocalStorage<Letter[]>(
@@ -152,34 +154,56 @@ export default function Write() {
           </>
         ) : (
           <>
-            <label className="block pt-12 text-xl font-bold" htmlFor="prompt">
-              文章の出だし
-            </label>
-            <input
-              id="prompt"
-              name="prompt"
-              type="text"
-              className="w-full p-3 mt-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
-              placeholder="ここに出だしをかいてください"
-              onChange={(e) => {
-                setPrompt(e.target.value);
-              }}
-              value={prompt}
-            />
-            <label className="block pt-6 text-xl font-bold" htmlFor="secret">
-              埋め込みたいコトバ
-            </label>
-            <textarea
-              id="secret"
-              name="secret"
-              className="w-full p-3 mt-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
-              placeholder="ここにコトバをかいてください"
-              rows={5}
-              onChange={(e) => {
-                setText(e.target.value);
-              }}
-              value={text}
-            ></textarea>
+            <div>
+              <label className="block pt-12 text-xl font-bold" htmlFor="prompt">
+                文章の出だし
+                <span
+                  className={
+                    54 - stringWidth(prompt || "") >= 0
+                      ? "text-black"
+                      : "text-primary"
+                  }
+                >
+                  （残り{54 - stringWidth(prompt || "")}）
+                </span>
+              </label>
+              <input
+                id="prompt"
+                name="prompt"
+                type="text"
+                className="w-full p-3 mt-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                placeholder="ここに出だしをかいてください"
+                onChange={(e) => {
+                  setPrompt(e.target.value);
+                }}
+                value={prompt}
+              />
+            </div>
+            <div>
+              <label className="block pt-6 text-xl font-bold" htmlFor="secret">
+                埋め込みたいコトバ
+                <span
+                  className={
+                    150 - stringWidth(text || "") >= 0
+                      ? "text-black"
+                      : "text-primary"
+                  }
+                >
+                  （残り{150 - stringWidth(text || "")}）
+                </span>
+              </label>
+              <textarea
+                id="secret"
+                name="secret"
+                className="w-full p-3 mt-4 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+                placeholder="ここにコトバをかいてください"
+                rows={5}
+                onChange={(e) => {
+                  setText(e.target.value);
+                }}
+                value={text}
+              ></textarea>
+            </div>
             <details className="mt-4">
               <summary className="text-xl font-bold cursor-pointer">
                 高度な設定
@@ -234,7 +258,12 @@ export default function Write() {
               bgColor="bg-primary"
               text="埋め込む"
               onClick={() => {
-                encodeText();
+                if (text && prompt) {
+                  if (stringWidth(text) > 150 || stringWidth(prompt) > 54) {
+                    toast.error("文字数が多すぎます");
+                  }
+                  encodeText();
+                }
               }}
             />
           </>
