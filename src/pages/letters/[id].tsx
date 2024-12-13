@@ -7,14 +7,19 @@ import { RiFileImageLine, RiHome4Line, RiFilePdf2Line } from "react-icons/ri";
 import { saveLetterImage, saveLetterPdf } from "@/lib/save";
 import { useRouter } from "next/router";
 import { useLocalStorage } from "usehooks-ts";
+import templates from "@/lib/templates";
 
 export default function LetterPage() {
   const router = useRouter();
   const [readLetters] = useLocalStorage<Letter[]>("read", []);
-  const [createdLetters] = useLocalStorage<Letter[]>("created", []);
+  const [createdLetters, setCreatedLetters] = useLocalStorage<Letter[]>(
+    "created",
+    []
+  );
   const letters = readLetters.concat(createdLetters);
   const { id } = router.query;
   const letter = letters.find((letter) => letter.id === id);
+  const templateKeys = templates ? Object.keys(templates) : [];
   if (!letter) {
     return null;
   }
@@ -30,6 +35,26 @@ export default function LetterPage() {
             text={letter.status === "created" ? letter.encoded : letter.text}
           />
         </div>
+        {letter.status === "created" && (
+          <select
+            id="template"
+            name="template"
+            className="w-full p-3 text-black bg-gray-100 focus:ring-primary focus:border-primary rounded-lg"
+            onChange={(e) => {
+              const newLetter = { ...letter, type: e.target.value };
+              setCreatedLetters(
+                createdLetters.map((l) => (l.id === id ? newLetter : l))
+              );
+            }}
+            value={letter.type}
+          >
+            {templateKeys.map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
+          </select>
+        )}
         <Button
           className="mt-8 w-full"
           bgColor="bg-primary"
