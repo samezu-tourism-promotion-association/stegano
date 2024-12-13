@@ -13,6 +13,7 @@ import {
   RiFileImageLine,
   RiFilePdf2Line,
   RiHome4Line,
+  RiUploadLine,
 } from "react-icons/ri";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { v4 as uuidv4 } from "uuid";
@@ -35,6 +36,7 @@ export default function Read() {
   const [templateId, setTemplateId] = useState<string | undefined>(undefined);
   const [model, setModel] = useState<string>("leia-llm/Leia-Swallow-7b");
   const [minProb, setMinProb] = useState<number>(0.005);
+  const uploadRef = useRef<HTMLInputElement>(null);
 
   const analyzeImage = async () => {
     // request to cloud vision api
@@ -193,7 +195,7 @@ export default function Read() {
           </>
         ) : image ? (
           <>
-            <div className="relative max-w-lg mx-auto aspect-square">
+            <div className="relative max-w-lg mx-auto">
               {typeof image === "string" && (
                 <img
                   src={image}
@@ -312,7 +314,32 @@ export default function Read() {
                 onClick={() => setImage(camera.current?.takePhoto())}
                 text="撮影"
                 icon={RiCamera3Line}
-                className="w-full px-4 my-8"
+                className="w-full px-4 my-4"
+              />
+              <Button
+                onClick={() => {
+                  uploadRef.current?.click();
+                }}
+                text="画像をアップロード"
+                icon={RiUploadLine}
+                bgColor="bg-secondary"
+                className="w-full px-4 my-4"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={uploadRef}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      if (typeof e.target?.result === "string")
+                        setImage(e.target?.result);
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                  }
+                }}
               />
             </div>
           </>
