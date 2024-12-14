@@ -24,7 +24,6 @@ import toast from "react-hot-toast";
 import { models } from "@/lib/models";
 import templates from "@/lib/templates";
 import { useLocalStorage } from "usehooks-ts";
-import PdfToImg from "pdftoimg-js/browser";
 
 export default function Read() {
   const router = useRouter();
@@ -38,7 +37,6 @@ export default function Read() {
   const [model, setModel] = useState<string>("leia-llm/Leia-Swallow-7b");
   const [minProb, setMinProb] = useState<number>(0.005);
   const uploadRef = useRef<HTMLInputElement>(null);
-  const uploadPdfRef = useRef<HTMLInputElement>(null);
 
   const analyzeImage = async () => {
     // request to cloud vision api
@@ -138,14 +136,6 @@ export default function Read() {
         toast.error("デコードに失敗しました。読み取った文字列は正しいですか？");
       }
     }
-  };
-
-  const convertToImage = async (pdf: ArrayBuffer) => {
-    const pdfToImg = await PdfToImg(pdf, {
-      imgType: "png",
-      scale: 3,
-    });
-    setImage(pdfToImg.toString());
   };
 
   return (
@@ -348,30 +338,6 @@ export default function Read() {
                         setImage(e.target?.result);
                     };
                     reader.readAsDataURL(e.target.files[0]);
-                  }
-                }}
-              />
-              <Button
-                onClick={() => {
-                  uploadPdfRef.current?.click();
-                }}
-                text="PDFをアップロード"
-                icon={RiUploadLine}
-                bgColor="bg-secondary"
-                className="w-full px-4 my-4"
-              />
-              <input
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                ref={uploadPdfRef}
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                      convertToImage(e.target!.result! as ArrayBuffer);
-                    };
-                    reader.readAsArrayBuffer(e.target.files[0]);
                   }
                 }}
               />
