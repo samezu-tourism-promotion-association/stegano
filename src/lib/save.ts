@@ -1,10 +1,10 @@
-import { toPng } from "html-to-image";
+import { domToPng } from "modern-screenshot";
 import jsPDF from "jspdf";
 
 const saveLetterImage = async () => {
   const letter = document.getElementById("letter");
   if (letter) {
-    const dataUrl = await toPng(letter, {
+    const dataUrl = await domToPng(letter, {
       width: 590.5,
       height: 874,
       style: {
@@ -23,7 +23,7 @@ const saveLetterPdf = async () => {
   try {
     const letter = document.getElementById("letter");
     if (letter) {
-      const dataUrl = await toPng(letter, {
+      const dataUrl = await domToPng(letter, {
         width: 590.5,
         height: 874,
         style: {
